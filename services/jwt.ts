@@ -10,10 +10,10 @@ const getToken = (req: Request) => {
     if (/^Bearer$/i.test(scheme)) {
       token = credentials;
     } else {
-      return { error: "Invalid authorization header format." };
+      throw new Error("Invalid authorization header format.");
     }
   } else {
-    return { error: "No authorization header was found" };
+    throw new Error("No authorization header was found");
   }
 
   return token;

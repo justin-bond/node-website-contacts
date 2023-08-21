@@ -14,35 +14,39 @@ router.get("/", (req: Request, res: Response) => {
 
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const response = await mongoDB
-      .db_connect()
-      .then((db: Document) => db.insertOne(req.body));
+    const token = jwt.getToken(req);
 
-    res.send(response);
-  } catch (err) {
-    res.send({ error: true });
+    if (token && token === process.env.API_TOKEN) {
+      const response = await mongoDB
+        .db_connect()
+        .then((db: Document) => db.insertOne(req.body));
+
+      res.send(response);
+    } else {
+      throw new Error("Invalid authorization header.");
+    }
+  } catch (err: any) {
+    res.send({ error: err?.message || true });
     console.error(`Something went wrong trying to insert: ${err}\n`);
   }
 });
 
 router.get("/list", async (req: Request, res: Response) => {
-  const token = jwt.getToken(req);
+  try {
+    const token = jwt.getToken(req);
 
-  if (!token?.error && token === process.env.API_TOKEN) {
-    try {
+    if (token && token === process.env.API_TOKEN) {
       const response = await mongoDB
         .db_connect()
         .then((db: Document) => db.find({}).toArray());
 
       res.send(response);
-    } catch (err) {
-      res.send({ error: true });
-      console.error(`Something went wrong: ${err}\n`);
+    } else {
+      throw new Error("Invalid authorization header.");
     }
-  } else {
-    res.send({
-      error: token?.error || "Invalid authorization header.",
-    });
+  } catch (err: any) {
+    res.send({ error: err?.message || true });
+    console.error(`Something went wrong: ${err}\n`);
   }
 });
 
