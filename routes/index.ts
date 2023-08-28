@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { Document } from "mongodb";
+import * as Sentry from "@sentry/node";
 
 const router = express.Router();
 const mongoDB = require("../connection");
@@ -26,6 +27,7 @@ router.post("/", async (req: Request, res: Response) => {
       throw new Error("Invalid authorization header.");
     }
   } catch (err: any) {
+    Sentry.captureException(err);
     res.send({ error: err?.message || true });
     console.error(`Something went wrong trying to insert: ${err}\n`);
   }
@@ -45,6 +47,7 @@ router.get("/list", async (req: Request, res: Response) => {
       throw new Error("Invalid authorization header.");
     }
   } catch (err: any) {
+    Sentry.captureException(err);
     res.send({ error: err?.message || true });
     console.error(`Something went wrong: ${err}\n`);
   }

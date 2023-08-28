@@ -1,4 +1,5 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
+import * as Sentry from "@sentry/node";
 
 const uri = process.env.DB_URI || "";
 
@@ -11,16 +12,20 @@ const client = new MongoClient(`${uri}`, {
 });
 
 const db_connect = (onSuccess?: (dbClient: unknown) => void, onError?: any) => {
+  const dbName = process.env.DB_NAME || "";
+  const dbCollection = process.env.DB_COLLECTION || "";
+
   return client
     .connect()
     .then((dbClient: MongoClient) => {
-      const db = dbClient.db("website").collection("contacts");
+      const db = dbClient.db(dbName).collection(dbCollection);
 
       if (onSuccess) onSuccess(db);
 
       return db;
     })
     .catch((err) => {
+      Sentry.captureException(err);
       if (onError) onError(err);
       return err;
     });
